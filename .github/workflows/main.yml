@@ -1,0 +1,36 @@
+name: ORCID Adaptive Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Пуска се на всеки 6 часа автоматично
+  workflow_dispatch:      # Позволява ти да го пуснеш ръчно като шеф
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Важно: даваме му право да пише обратно в репозиторито
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas selenium webdriver-manager openpyxl
+
+    - name: Run Scraper
+      run: python orcid_scraper.py
+
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        git add script/ORCID_Deep_Scan_Results.xlsx
+        git commit -m "Auto-update ORCID results [skip ci]" || exit 0
+        git push
