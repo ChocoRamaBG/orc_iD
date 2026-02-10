@@ -2,14 +2,14 @@ name: ORCID Adaptive Scraper
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Пуска се на всеки 6 часа автоматично
-  workflow_dispatch:      # Позволява ти да го пуснеш ръчно като шеф
+    - cron: '0 */6 * * *' # Автоматично на всеки 6 часа
+  workflow_dispatch:      # Ръчно стартиране от бутона "Run workflow"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Важно: даваме му право да пише обратно в репозиторито
+      contents: write
 
     steps:
     - name: Checkout code
@@ -25,7 +25,8 @@ jobs:
         pip install pandas selenium webdriver-manager openpyxl
 
     - name: Run Scraper
-      run: python orcid_scraper.py
+      # ТУК Е ПРОМЯНАТА: Сменяме orcid_scraper.py със scraper.py
+      run: python scraper.py
 
     - name: Commit and Push changes
       run: |
