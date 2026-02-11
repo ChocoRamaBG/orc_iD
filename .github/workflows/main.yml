@@ -1,17 +1,53 @@
+name: ORCID Adaptive Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Автоматично на всеки 6 часа
+  workflow_dispatch:      # Ръчно стартиране
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Вземаме цялата история, за да нямаме драми с rebase
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas selenium webdriver-manager openpyxl
+
+    - name: Run Scraper
+      run: python scraper.py
+      continue-on-error: true # Позволяваме на този степ да "фейлне", без да спира целия workflow
+
     - name: Commit and Push changes
+      if: always() # МАГИЯТА: Изпълнява се дори ако горният степ е гръмнал
       run: |
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
         
-        # Първо добавяме файла
-        git add script/ORCID_Deep_Scan_Results.xlsx
-        
-        # Правим commit само ако има истински промени
-        git commit -m "Auto-update ORCID results [skip ci]" || echo "No changes to commit"
-        
-        # МАГИЯТА Е ТУК: Дърпаме промените и подреждаме историята (Rebase)
-        # Това оправя грешката "fetch first"
-        git pull --rebase origin main
-        
-        # Накрая бутаме към облака
-        git push origin main
+        # Проверяваме дали папката и файлът изобщо съществуват
+        if [ -f "script/ORCID_Deep_Scan_Results.xlsx" ]; then
+          git add script/ORCID_Deep_Scan_Results.xlsx
+          
+          # Commit-ваме само ако има реална промяна в данните
+          git commit -m "Auto-update ORCID results (partial/full) [skip ci]" || echo "Няма нови скандалчовци за запис."
+          
+          # Синхронизираме, за да няма "rejected main -> main" конфликти
+          git pull --rebase origin main
+          
+          # Бутаме към облака
+          git push origin main
+        else
+          echo "Файлът не е намерен! Нещо стана на андибул морков..."
+        fi
