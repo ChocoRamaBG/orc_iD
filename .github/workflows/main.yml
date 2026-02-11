@@ -1,37 +1,17 @@
-name: ORCID Adaptive Scraper
-
-on:
-  schedule:
-    - cron: '0 */6 * * *' # Автоматично на всеки 6 часа
-  workflow_dispatch:      # Ръчно стартиране от бутона "Run workflow"
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install dependencies
-      run: |
-        pip install pandas selenium webdriver-manager openpyxl
-
-    - name: Run Scraper
-      # ТУК Е ПРОМЯНАТА: Сменяме orcid_scraper.py със scraper.py
-      run: python scraper.py
-
     - name: Commit and Push changes
       run: |
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
+        
+        # Първо добавяме файла
         git add script/ORCID_Deep_Scan_Results.xlsx
-        git commit -m "Auto-update ORCID results [skip ci]" || exit 0
-        git push
+        
+        # Правим commit само ако има истински промени
+        git commit -m "Auto-update ORCID results [skip ci]" || echo "No changes to commit"
+        
+        # МАГИЯТА Е ТУК: Дърпаме промените и подреждаме историята (Rebase)
+        # Това оправя грешката "fetch first"
+        git pull --rebase origin main
+        
+        # Накрая бутаме към облака
+        git push origin main
