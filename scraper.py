@@ -19,7 +19,7 @@ def orcid_adaptive_parser():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Увери се, че името на файла е 1:1, иначе ще ядем хурката
-    input_file = "Superdoc_Full_List_012026_doc_formulas.xlsx"
+    input_file = "Superdoc_Full_List_012026_doc_formulas - Remaining.xlsx"
     input_path = os.path.join(script_dir, input_file)
     
     output_folder = os.path.join(script_dir, "script")
